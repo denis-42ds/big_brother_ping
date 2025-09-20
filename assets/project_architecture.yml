@@ -1,0 +1,39 @@
+system:
+  name: "BigBrother Monitoring and Scheduling"
+  description: "A microservice-based system for scheduling tasks and monitoring service health."
+
+components:
+  - name: "Frontend Client"
+    type: "Client Application"
+    technologies: ["React", "Vite", "Tailwind CSS"]
+    role: "User Interface for interacting with the system."
+    connects_to: ["api_gateway"]
+
+  - name: "API Gateway"
+    type: "Microservice"
+    technologies: ["Spring Cloud Gateway", "Java 17"]
+    role: "Single entry point for all external requests. Routes traffic to internal services."
+    connects_to: ["eureka_server", "scheduler_service"]
+
+  - name: "Scheduler Service"
+    type: "Microservice"
+    technologies: ["Spring Boot", "Java 17"]
+    role: "Core backend service for handling business logic and task scheduling."
+    connects_to: ["eureka_server", "Postgres Database"]
+
+  - name: "Eureka Server"
+    type: "Microservice"
+    technologies: ["Spring Cloud Eureka", "Java 17"]
+    role: "Service discovery server. Allows services to find each other."
+    connects_to: ["api_gateway", "scheduler_service"]
+
+  - name: "Postgres Database"
+    type: "Data Store"
+    technologies: ["PostgreSQL"]
+    role: "Primary data storage for business-critical data."
+    connects_to: ["scheduler_service"]
+
+monitoring_strategy:
+  type: "Manual/Script-based"
+  description: "Uses built-in Spring Boot Actuator endpoints for health checks and a custom script for basic monitoring and alerts."
+  components: ["HTTP-based health checks", "Scripting for alerts (e.g., email notification)"]
