@@ -1,0 +1,99 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: scheduler_service
+
+  datasource:
+    url: jdbc:postgresql://${PSQL_DATASOURCE_URL:localhost}:5432/Backend_Java_DB
+    username: ${PSQL_DATASOURCE_USERNAME:postgres}
+    password: ${PSQL_DATASOURCE_PASSWORD:Caruman4747}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        ddl-auto: update
+        show_sql: true
+
+  liquibase:
+    change-log: classpath:db.migration/db.changelog-master.xml
+    database-change-log-lock-table: LIQ_DATABASECHANGELOGLOCK
+    database-change-log-table: LIQ_DATABASECHANGELOG
+    driver-class-name: org.postgresql.Driver
+    liquibase-schema: public
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+
+  mail:
+    host: smtp.yandex.ru          # Адрес вашего почтового провайдера
+    port: 587                     # Порт SMTP    465
+    username: Reinar47@yandex.ru # Логин аккаунта
+    password: nityjiteqxciptfp           # Пароль аккаунта BigBrotherPing
+    protocol: smtp                # Протокол передачи почты
+    properties:
+      mail:
+        debug: true
+        transport:
+          protocol: smtp
+        smtp:
+          ssl:
+            trust: "*"
+          auth: true
+          starttls:
+            enable: true
+          connection-timeout: 5000
+          timeout: 3000
+          write timeout: 5000
+
+  data:
+    redis:
+      port: ${SPRING_REDIS_PORT:6379}
+      host: ${SPRING_REDIS_HOST:localhost}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+#  data:
+#    redis:
+#      port: 6379
+#      host: 172.17.1.24
+#      password: atinkpass
+#      timeout: 500
+
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: http://${container.eureka.url:localhost}:9001/eureka
+  instance:
+    instance-id: ${spring.application.name}:${server.port}
+    preferIpAddress: true
+
+
+container:
+  eureka:
+    url: eureka-server
+
+info:
+  app:
+    description: Open api for schedulerService
+    version: 1.3
+    summary: Additional description
+
+
+scheduledTasks:
+  enabledSchedule: false
+  timeout: 100
+
+list:
+  size:
+    split: 10
+
+
