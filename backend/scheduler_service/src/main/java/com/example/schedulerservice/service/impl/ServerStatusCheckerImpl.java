@@ -13,12 +13,13 @@ import com.example.schedulerservice.model.entity.ServerStatusLog;
 import com.example.schedulerservice.repository.ServerRepository;
 import com.example.schedulerservice.repository.ServerRepositoryLog;
 import com.example.schedulerservice.service.ServerStatusChecker;
+import com.example.schedulerservice.utils.ServerAlert;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +49,7 @@ public class ServerStatusCheckerImpl implements ServerStatusChecker {
     private final ServerStatusMapper serverStatusMapper;
     private final ServerRepository serverRepository;
     private final ServerRepositoryLog serverRepositoryLog;
+    private final ServerAlert serverAlert;
 
     public ServerStatusDtoList serverStatusDtoList;
 
@@ -62,6 +63,7 @@ public class ServerStatusCheckerImpl implements ServerStatusChecker {
     }
     @Override
     @Transactional
+    @Cacheable("single-servers")
     public ServerStatusDtoList getStatusForSingleServer(List<Server> serverIdList, int timeout){
 
         List<Server> singleServers = new ArrayList<>();
@@ -74,11 +76,29 @@ public class ServerStatusCheckerImpl implements ServerStatusChecker {
 
         List<ServerStatusResponse> serverStatusResponses = parallelProcess(List.of(singleServers), timeout);
 
-        return new ServerStatusDtoList(serverStatusResponses);
+        List<ServerStatusLog> serverStatusLogs = serverStatusMapper.serverStatusResponseListToServerStatusLogList(serverStatusResponses);
+
+        List<ServerStatusLog> serverOfflineList = sortOfflineServers(serverStatusLogs);
+
+        List<ServerStatusLog> serverAlertList = new ArrayList<>();
+        if (!serverOfflineList.isEmpty()) {
+            serverAlertList = serverAlert.notificationSend(serverOfflineList);
+        }else {
+            serverAlertList = serverAlert.notificationSend(new ArrayList<>());
+        }
+
+        return new ServerStatusDtoList(serverStatusResponses, serverAlertList);
+    }
+
+    private List<ServerStatusLog> sortOfflineServers(List<ServerStatusLog> serverStatusLogs) {
+
+        return serverStatusLogs.stream()
+                .filter(server -> server.getServerStatus() == ServerStatus.OFFLINE)
+                .toList();
     }
 
     @Override
-//    @CachePut(value = "server", key = "'allServersStatus'")
+    @Cacheable("servers")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ServerStatusDtoList allServersStatus(int timeout) {
 
@@ -102,7 +122,16 @@ public class ServerStatusCheckerImpl implements ServerStatusChecker {
         }
         serverRepositoryLog.saveAll(serverStatusLogs);
 
-        return new ServerStatusDtoList(serverStatusResponses);
+        List<ServerStatusLog> serverOfflineList = sortOfflineServers(serverStatusLogs);
+
+        List<ServerStatusLog> serverAlertList = new ArrayList<>();
+        if (!serverOfflineList.isEmpty()) {
+            serverAlertList = serverAlert.notificationSend(serverOfflineList);
+        } else {
+            serverAlertList = serverAlert.notificationSend(new ArrayList<>());
+        }
+
+        return new ServerStatusDtoList(serverStatusResponses, serverAlertList);
     }
 
     @Override
