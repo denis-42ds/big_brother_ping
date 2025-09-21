@@ -1,6 +1,7 @@
 package com.example.schedulerservice.utils;
 
 
+import com.example.schedulerservice.config.UpdateConsumer;
 import com.example.schedulerservice.exeption.UnableSendMessageToClientException;
 import com.example.schedulerservice.model.dto.ServerStatusDtoList;
 import com.example.schedulerservice.model.entity.Server;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,8 +33,13 @@ public class ScheduledSingleTasks {
 
     private ScheduledFuture<?> scheduledSingleTask;
 
+    private final UpdateConsumer updateConsumer;
+
     @Value("${scheduledTasks.enabledSchedule}")
     private volatile boolean enabledSingleSchedule;
+
+    @Value("${scheduledTasks.enabledScheduleNotification}")
+    private volatile boolean enabledSingleScheduleNotification;
 
     @Value("${scheduledTasks.timeout}")
     private volatile int singleTaskTimeout;
@@ -46,6 +51,15 @@ public class ScheduledSingleTasks {
     @PostConstruct
     public void init() {
         scheduleSingleTask();
+    }
+
+    public synchronized void setSingleScheduleNotificationOn() {
+        this.enabledSingleScheduleNotification = true;
+
+    }
+    public synchronized void setSingleScheduleNotificationOff() {
+        this.enabledSingleScheduleNotification = false;
+
     }
 
     public synchronized void setServerId(List<Server> serverIdList) {
@@ -82,6 +96,10 @@ public class ScheduledSingleTasks {
                 try {
                     ServerStatusDtoList result = serverStatusChecker.getStatusForSingleServer(serverIdList, singleTaskTimeout);
                     messagingTemplate.convertAndSend("/status-of-servers/single-server-status-updates", result); // отправляем событие клиенту
+
+                    if (enabledSingleScheduleNotification && !result.serverAlertList().isEmpty()){
+                        updateConsumer.sendMessage(result.serverAlertList(),singleFixedRate,singleTaskTimeout);
+                    }
                 } catch (RuntimeException e) {
 
                     log.error(e.getMessage(), e);
