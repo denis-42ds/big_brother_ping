@@ -101,6 +101,45 @@ public class SingleSchedulerController {
 
         return ResponseEntity.ok(new SimpleMessageResponse("Scheduler is now ON"));
     }
+    @Operation(summary = "Get off single Schedule Notification", tags = "singleScheduler",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = SimpleMessageResponse.class)))),
+                    @ApiResponse(responseCode = "400", description = "Bad request",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)))
+            })
+    @PostMapping("/single-schedule-notification/off")
+    public ResponseEntity<SimpleMessageResponse> singleScheduleNotificationOff() {
+
+      scheduledSingleTask.setSingleScheduleNotificationOff();
+
+        return ResponseEntity.ok(new SimpleMessageResponse("schedule Notification is now OFF"));
+    }
+
+    @Operation(summary = "Get on singleSchedule Notification", tags = "singleScheduler",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = SimpleMessageResponse.class)))),
+                    @ApiResponse(responseCode = "400", description = "Bad request",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ErrorResponse.class)))
+            })
+    @PostMapping("/single-schedule-notification/on")
+    public ResponseEntity<SimpleMessageResponse> singleScheduleNotificationOn() {
+
+        scheduledSingleTask.setSingleScheduleNotificationOn();
+
+        return ResponseEntity.ok(new SimpleMessageResponse("schedule Notification is now OFF"));
+    }
 
     //  Узнать значение переодичности проверки
     @Operation(summary = "get scheduled rate for single server", tags = "singleScheduler",

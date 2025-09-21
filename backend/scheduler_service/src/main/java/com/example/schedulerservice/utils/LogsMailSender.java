@@ -22,7 +22,6 @@ public class LogsMailSender {
     @Value("${spring.mail.username}")
     private String userName;
 
-//    private static final String FILE_PATH = "./report/report.csv";
     private static final String FILE_PATH = "SeverStatusReport.csv";
 
     public void sendCsvReport(String recipientEmail) {

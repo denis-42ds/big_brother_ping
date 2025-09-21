@@ -59,12 +59,6 @@ spring:
     type: redis
     redis:
       time-to-live: 3600000
-#  data:
-#    redis:
-#      port: 6379
-#      host: 172.17.1.24
-#      password: atinkpass
-#      timeout: 500
 
 eureka:
   client:
@@ -75,7 +69,6 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${server.port}
     preferIpAddress: true
-
 
 container:
   eureka:
@@ -91,9 +84,12 @@ info:
 scheduledTasks:
   enabledSchedule: false
   timeout: 100
+  enabledScheduleNotification: true
 
 list:
   size:
     split: 10
 
+telegram:
+    token: 8371745381:AAGEAG5OVZ27Wj6bK4d85NW3ixkeH1bWmPk
 

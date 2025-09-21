@@ -4,6 +4,7 @@ package com.example.schedulerservice.model.dto.response;
 import com.example.schedulerservice.model.constant.ServerStatus;
 import lombok.*;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Builder
@@ -29,4 +30,8 @@ public class ServerStatusResponse {
         this.serverStatus = serverStatus;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(getServerUrl(), getServerName());
+    }
 }
